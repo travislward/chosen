@@ -9,8 +9,9 @@ $.fn.extend({
   chosen: (options) ->
     # Do no harm and return as soon as possible for unsupported browsers, namely IE6 and IE7
     return this if $.browser.msie and ($.browser.version is "6.0" or  $.browser.version is "7.0")
-    $(this).each((input_field) ->
-      new Chosen(this, options) unless ($ this).hasClass "chzn-done"
+    this.each((input_field) ->
+      $this = $ this
+      $this.data('chosen', new Chosen(this, options)) unless $this.hasClass "chzn-done"
     )
 })
 
@@ -18,29 +19,28 @@ class Chosen extends AbstractChosen
 
   setup: ->
     @form_field_jq = $ @form_field
+    @current_value = @form_field_jq.val()
     @is_rtl = @form_field_jq.hasClass "chzn-rtl"
 
   finish_setup: ->
     @form_field_jq.addClass "chzn-done"
 
   set_up_html: ->
-    @container_id = if @form_field.id.length then @form_field.id.replace(/(:|\.)/g, '_') else this.generate_field_id()
+    @container_id = if @form_field.id.length then @form_field.id.replace(/[^\w]/g, '_') else this.generate_field_id()
     @container_id += "_chzn"
-    
+
     @f_width = @form_field_jq.outerWidth()
-    
-    @default_text = if @form_field_jq.data 'placeholder' then @form_field_jq.data 'placeholder' else @default_text_default
-    
+
     container_div = ($ "<div />", {
       id: @container_id
       class: "chzn-container#{ if @is_rtl then ' chzn-rtl' else '' }"
       style: 'width: ' + (@f_width) + 'px;' #use parens around @f_width so coffeescript doesn't think + ' px' is a function parameter
     })
-    
+
     if @is_multiple
       container_div.html '<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
     else
-      container_div.html '<a href="javascript:void(0)" class="chzn-single"><span>' + @default_text + '</span><div><b></b></div></a><div class="chzn-drop" style="left:-9000px;"><div class="chzn-search"><input type="text" autocomplete="off" /></div><ul class="chzn-results"></ul></div>'
+      container_div.html '<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + @default_text + '</span><div><b></b></div></a><div class="chzn-drop" style="left:-9000px;"><div class="chzn-search"><input type="text" autocomplete="off" /></div><ul class="chzn-results"></ul></div>'
 
     @form_field_jq.hide().after container_div
     @container = ($ '#' + @container_id)
@@ -51,7 +51,7 @@ class Chosen extends AbstractChosen
     
     dd_top = @container.height()
     dd_width = (@f_width - get_side_border_padding(@dropdown))
-    
+
     @dropdown.css({"width": dd_width  + "px", "top": dd_top + "px"})
 
     @search_field = @container.find('input').first()
@@ -59,7 +59,7 @@ class Chosen extends AbstractChosen
     this.search_field_scale()
 
     @search_no_results = @container.find('li.no-results').first()
-    
+
     if @is_multiple
       @search_choices = @container.find('ul.chzn-choices').first()
       @search_container = @container.find('li.search-field').first()
@@ -68,7 +68,7 @@ class Chosen extends AbstractChosen
       @selected_item = @container.find('.chzn-single').first()
       sf_width = dd_width - get_side_border_padding(@search_container) - get_side_border_padding(@search_field)
       @search_field.css( {"width" : sf_width + "px"} )
-    
+
     this.results_build()
     this.set_tab_index()
     @form_field_jq.trigger("liszt:ready", {chosen: this})
@@ -78,7 +78,7 @@ class Chosen extends AbstractChosen
     @container.mouseup (evt) => this.container_mouseup(evt)
     @container.mouseenter (evt) => this.mouse_enter(evt)
     @container.mouseleave (evt) => this.mouse_leave(evt)
-  
+
     @search_results.mouseup (evt) => this.search_results_mouseup(evt)
     @search_results.mouseover (evt) => this.search_results_mouseover(evt)
     @search_results.mouseout (evt) => this.search_results_mouseout(evt)
@@ -110,7 +110,7 @@ class Chosen extends AbstractChosen
   container_mousedown: (evt) ->
     if !@is_disabled
       target_closelink =  if evt? then ($ evt.target).hasClass "search-choice-close" else false
-      if evt and evt.type is "mousedown"
+      if evt and evt.type is "mousedown" and not @results_showing
         evt.stopPropagation()
       if not @pending_destroy_click and not target_closelink
         if not @active_field
@@ -126,18 +126,18 @@ class Chosen extends AbstractChosen
         @pending_destroy_click = false
 
   container_mouseup: (evt) ->
-    this.results_reset(evt) if evt.target.nodeName is "ABBR"
+    this.results_reset(evt) if evt.target.nodeName is "ABBR" and not @is_disabled
 
   blur_test: (evt) ->
     this.close_field() if not @active_field and @container.hasClass "chzn-container-active"
 
   close_field: ->
     $(document).unbind "click", @click_test_action
-    
+
     if not @is_multiple
       @selected_item.attr "tabindex", @search_field.attr("tabindex")
       @search_field.attr "tabindex", -1
-    
+
     @active_field = false
     this.results_hide()
 
@@ -165,7 +165,7 @@ class Chosen extends AbstractChosen
       @active_field = true
     else
       this.close_field()
-    
+
   results_build: ->
     @parsing = true
     @results_data = root.SelectParser.select_to_array @form_field
@@ -174,7 +174,7 @@ class Chosen extends AbstractChosen
       @search_choices.find("li.search-choice").remove()
       @choices = 0
     else if not @is_multiple
-      @selected_item.find("span").text @default_text
+      @selected_item.addClass("chzn-default").find("span").text(@default_text)
       if @form_field.options.length <= @disable_search_threshold
         @container.addClass "chzn-container-single-nosearch"
       else
@@ -189,13 +189,13 @@ class Chosen extends AbstractChosen
         if data.selected and @is_multiple
           this.choice_build data
         else if data.selected and not @is_multiple
-          @selected_item.find("span").text data.text
+          @selected_item.removeClass("chzn-default").find("span").text data.text
           this.single_deselect_control_build() if @allow_single_deselect
 
     this.search_field_disabled()
     this.show_search_field_default()
     this.search_field_scale()
-    
+
     @search_results.html content
     @parsing = false
 
@@ -206,7 +206,7 @@ class Chosen extends AbstractChosen
       '<li id="' + group.dom_id + '" class="group-result">' + $("<div />").text(group.label).html() + '</li>'
     else
       ""
-  
+
   result_do_highlight: (el) ->
     if el.length
       this.result_clear_highlight()
@@ -217,7 +217,7 @@ class Chosen extends AbstractChosen
       maxHeight = parseInt @search_results.css("maxHeight"), 10
       visible_top = @search_results.scrollTop()
       visible_bottom = maxHeight + visible_top
-      
+
       high_top = @result_highlight.position().top + @search_results.scrollTop()
       high_bottom = high_top + @result_highlight.outerHeight()
 
@@ -225,7 +225,7 @@ class Chosen extends AbstractChosen
         @search_results.scrollTop if (high_bottom - maxHeight) > 0 then (high_bottom - maxHeight) else 0
       else if high_top < visible_top
         @search_results.scrollTop high_top
-    
+
   result_clear_highlight: ->
     @result_highlight.removeClass "highlighted" if @result_highlight
     @result_highlight = null
@@ -235,8 +235,12 @@ class Chosen extends AbstractChosen
       @selected_item.addClass "chzn-single-with-drop"
       if @result_single_selected
         this.result_do_highlight( @result_single_selected )
+    else if @max_selected_options <= @choices
+      @form_field_jq.trigger("liszt:maxselected", {chosen: this})
+      return false
 
     dd_top = if @is_multiple then @container.height() else (@container.height() - 1)
+    @form_field_jq.trigger("liszt:showing_dropdown", {chosen: this})
     @dropdown.css {"top":  dd_top + "px", "left":0}
     @results_showing = true
 
@@ -249,6 +253,7 @@ class Chosen extends AbstractChosen
   results_hide: ->
     @selected_item.removeClass "chzn-single-with-drop" unless @is_multiple
     this.result_clear_highlight()
+    @form_field_jq.trigger("liszt:hiding_dropdown", {chosen: this})
     @dropdown.css {"left":"-9000px"}
     @results_showing = false
 
@@ -329,6 +334,9 @@ class Chosen extends AbstractChosen
       this.results_show()
 
   choice_build: (item) ->
+    if @is_multiple and @max_selected_options <= @choices
+      @form_field_jq.trigger("liszt:maxselected", {chosen: this})
+      return false # fire event
     choice_id = @container_id + "_c_" + item.array_index
     @choices += 1
     @search_container.before  '<li class="search-choice" id="' + choice_id + '"><span>' + item.html + '</span><a href="javascript:void(0)" class="search-choice-close" rel="' + item.array_index + '"></a></li>'
@@ -352,19 +360,23 @@ class Chosen extends AbstractChosen
     this.result_deselect (link.attr "rel")
     link.parents('li').first().remove()
 
-  results_reset: (evt) ->
+  results_reset: ->
     @form_field.options[0].selected = true
     @selected_item.find("span").text @default_text
+    @selected_item.addClass("chzn-default") if not @is_multiple
     this.show_search_field_default()
-    $(evt.target).remove();
+    this.results_reset_cleanup()
     @form_field_jq.trigger "change"
     this.results_hide() if @active_field
+  
+  results_reset_cleanup: ->
+    @selected_item.find("abbr").remove()
 
   result_select: (evt) ->
     if @result_highlight
       high = @result_highlight
       high_id = high.attr "id"
-      
+
       this.result_clear_highlight()
 
       if @is_multiple
@@ -372,9 +384,10 @@ class Chosen extends AbstractChosen
       else
         @search_results.find(".result-selected").removeClass "result-selected"
         @result_single_selected = high
-      
+        @selected_item.removeClass("chzn-default")
+
       high.addClass "result-selected"
-      
+
       position = high_id.substr(high_id.lastIndexOf("_") + 1 )
       item = @results_data[position]
       item.selected = true
@@ -386,12 +399,13 @@ class Chosen extends AbstractChosen
       else
         @selected_item.find("span").first().text item.text
         this.single_deselect_control_build() if @allow_single_deselect
-      
+
       this.results_hide() unless evt.metaKey and @is_multiple
 
       @search_field.val ""
 
-      @form_field_jq.trigger "change"
+      @form_field_jq.trigger "change", {'selected': @form_field.options[item.options_index].value} if @is_multiple || @form_field_jq.val() != @current_value
+      @current_value = @form_field_jq.val()
       this.search_field_scale()
 
   result_activate: (el) ->
@@ -411,7 +425,7 @@ class Chosen extends AbstractChosen
     this.result_clear_highlight()
     this.winnow_results()
 
-    @form_field_jq.trigger "change"
+    @form_field_jq.trigger "change", {deselected: @form_field.options[result_data.options_index].value}
     this.search_field_scale()
 
   single_deselect_control_build: ->
@@ -419,11 +433,12 @@ class Chosen extends AbstractChosen
 
   winnow_results: ->
     this.no_results_clear()
-    
+
     results = 0
 
     @searchText = if @search_field.val() is @default_text then "" else $('<div/>').text($.trim(@search_field.val())).html()
-    @regex = new RegExp('^' + @searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i')
+    regexAnchor = if @search_contains then "" else "^"
+    @regex = new RegExp(regexAnchor + @searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i')
     @zregex = new RegExp(@searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i')
 
     for option in @results_data
@@ -443,7 +458,7 @@ class Chosen extends AbstractChosen
               text = this.winnow_search_highlight_match(@zregex, option.html, @searchText.length)
             else
               text = option.html
-            
+
             result.html(text)
             this.result_activate result
 
@@ -485,13 +500,13 @@ class Chosen extends AbstractChosen
       do_high = if selected_results.length then selected_results.first() else @search_results.find(".active-result").first()
 
       this.result_do_highlight do_high if do_high?
-  
+
   no_results: (terms) ->
     no_results_html = $('<li class="no-results">' + @results_none_found + ' "<span></span>"</li>')
     no_results_html.find("span").first().html(terms)
 
     @search_results.append no_results_html
-  
+
   no_results_clear: ->
     @search_results.find(".no-results").remove()
 
@@ -509,7 +524,7 @@ class Chosen extends AbstractChosen
       this.results_show()
     else if @result_highlight
       prev_sibs = @result_highlight.prevAll("li.active-result")
-      
+
       if prev_sibs.length
         this.result_do_highlight prev_sibs.first()
       else
@@ -522,7 +537,10 @@ class Chosen extends AbstractChosen
       this.clear_backstroke()
     else
       @pending_backstroke = @search_container.siblings("li.search-choice").last()
-      @pending_backstroke.addClass "search-choice-focus"
+      if @single_backstroke_delete
+        @keydown_backstroke()
+      else
+        @pending_backstroke.addClass "search-choice-focus"
 
   clear_backstroke: ->
     @pending_backstroke.removeClass "search-choice-focus" if @pending_backstroke
@@ -531,9 +549,9 @@ class Chosen extends AbstractChosen
   keydown_checker: (evt) ->
     stroke = evt.which ? evt.keyCode
     this.search_field_scale()
-    
+
     this.clear_backstroke() if stroke != 8 and this.pending_backstroke
-    
+
     switch stroke
       when 8
         @backstroke_length = this.search_field.val().length
@@ -552,7 +570,7 @@ class Chosen extends AbstractChosen
       when 40
         this.keydown_arrow()
         break
-  
+
   search_field_scale: ->
     if @is_multiple
       h = 0
@@ -560,10 +578,10 @@ class Chosen extends AbstractChosen
 
       style_block = "position:absolute; left: -1000px; top: -1000px; display:none;"
       styles = ['font-size','font-style', 'font-weight', 'font-family','line-height', 'text-transform', 'letter-spacing']
-      
+
       for style in styles
         style_block += style + ":" + @search_field.css(style) + ";"
-      
+
       div = $('<div />', { 'style' : style_block })
       div.text @search_field.val()
       $('body').append div
@@ -578,13 +596,13 @@ class Chosen extends AbstractChosen
 
       dd_top = @container.height()
       @dropdown.css({"top":  dd_top + "px"})
-  
+
   generate_random_id: ->
     string = "sel" + this.generate_random_char() + this.generate_random_char() + this.generate_random_char()
     while $("#" + string).length > 0
       string += this.generate_random_char()
     string
-    
+
 get_side_border_padding = (elmt) ->
   side_border_padding = elmt.outerWidth() - elmt.width()
 

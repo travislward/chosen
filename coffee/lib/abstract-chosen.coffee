@@ -31,8 +31,20 @@ class AbstractChosen
     @allow_single_deselect = if @options.allow_single_deselect? and @form_field.options[0]? and @form_field.options[0].text is "" then @options.allow_single_deselect else false
     @disable_search_threshold = @options.disable_search_threshold || 0
     @enable_select_all = if @options.enable_select_all? and @is_multiple then @options.enable_select_all else false
+    @search_contains = @options.search_contains || false
     @choices = 0
-    @results_none_found = @options.no_results_text or "No results match"
+    @single_backstroke_delete = @options.single_backstroke_delete || false
+    @max_selected_options = @options.max_selected_options || Infinity
+
+  set_default_text: ->
+    if @form_field.getAttribute("data-placeholder")
+      @default_text = @form_field.getAttribute("data-placeholder")
+    else if @is_multiple
+      @default_text = @options.placeholder_text_multiple || @options.placeholder_text || "Select Some Options"
+    else
+      @default_text = @options.placeholder_text_single || @options.placeholder_text || "Select an Option"
+
+    @results_none_found = @form_field.getAttribute("data-no_results_text") || @options.no_results_text || "No results match"
 
   mouse_enter: -> @mouse_on_container = true
   mouse_leave: -> @mouse_on_container = false
@@ -61,6 +73,7 @@ class AbstractChosen
       ""
 
   results_update_field: ->
+    this.results_reset_cleanup() if not @is_multiple
     this.result_clear_highlight()
     @result_single_selected = null
     this.results_build()
@@ -124,7 +137,7 @@ class AbstractChosen
     new_id
   
   generate_random_char: ->
-    chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZ"
+    chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     rand = Math.floor(Math.random() * chars.length)
     newchar = chars.substring rand, rand+1
 
