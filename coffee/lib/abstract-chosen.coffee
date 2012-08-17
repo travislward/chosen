@@ -9,6 +9,9 @@ class AbstractChosen
   constructor: (@form_field, @options={}) ->
     this.set_default_values()
 
+    @is_multiple = @form_field.multiple
+    this.set_default_text()
+
     this.setup()
 
     this.set_up_html()
@@ -17,7 +20,6 @@ class AbstractChosen
     this.finish_setup()
 
   set_default_values: ->
-    @is_multiple = @form_field.multiple
     @default_text_default = if @is_multiple then "Select Some Options" else "Select an Option"
     
     @click_test_action = (evt) => this.test_active_click(evt)

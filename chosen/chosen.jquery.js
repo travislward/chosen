@@ -106,6 +106,8 @@ Copyright (c) 2011 by Harvest
       this.form_field = form_field;
       this.options = options != null ? options : {};
       this.set_default_values();
+      this.is_multiple = this.form_field.multiple;
+      this.set_default_text();
       this.setup();
       this.set_up_html();
       this.register_observers();
@@ -114,7 +116,6 @@ Copyright (c) 2011 by Harvest
 
     AbstractChosen.prototype.set_default_values = function() {
       var _this = this;
-      this.is_multiple = this.form_field.multiple;
       this.default_text_default = this.is_multiple ? "Select Some Options" : "Select an Option";
       this.click_test_action = function(evt) {
         return _this.test_active_click(evt);
