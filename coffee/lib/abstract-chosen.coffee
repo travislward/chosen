@@ -7,13 +7,11 @@ root = this
 class AbstractChosen
 
   constructor: (@form_field, @options={}) ->
-    this.set_default_values()
-
     @is_multiple = @form_field.multiple
+    
+    this.set_default_values()
     this.set_default_text()
-
     this.setup()
-
     this.set_up_html()
     this.register_observers()
 
