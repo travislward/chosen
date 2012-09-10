@@ -395,3 +395,17 @@
   direction: rtl;
 }
 /* @end */
+
+
+
+.chzn-single-text .chzn-search input {
+  background: transparent none;
+  border: none;
+  position: relative;
+  z-index: 1;
+}
+.chzn-single-text .chzn-search .display-field {
+  position: absolute;
+  left: 4px;
+  z-index: 0;
+}
