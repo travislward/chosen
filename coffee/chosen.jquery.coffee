@@ -167,7 +167,7 @@ class Chosen extends AbstractChosen
     this.winnow_results_clear()
     this.clear_backstroke()
 
-    @set_selected_text(@current_value) if @single_text_style
+    @set_selected_text(@get_selected_text()) if @single_text_style
     this.show_search_field_default()
     this.search_field_scale()
 
@@ -432,6 +432,11 @@ class Chosen extends AbstractChosen
       @container.find(".chzn-search input.display-field").val(text)
     else
       @selected_item.find("span").text(text)
+
+  get_selected_text: () ->
+    selected_results = if not @is_multiple then @search_results.find(".result-selected.active-result") else []
+    do_high = if selected_results.length then selected_results.first() else @search_results.find(".active-result").first()
+    do_high.text()
 
   clear_selected_val: () ->
     if @single_text_style
