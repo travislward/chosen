@@ -315,7 +315,7 @@ Copyright (c) 2011 by Harvest
     };
 
     Chosen.prototype.set_up_html = function() {
-      var container_classes, dd_top, dd_width, search_field_markup, sf_width;
+      var container_classes, dd_top, dd_width, sf_width;
       this.container_id = this.form_field.id.length ? this.form_field.id.replace(/[^\w]/g, '_') : this.generate_field_id();
       this.container_id += "_chzn";
       this.f_width = this.form_field_jq.outerWidth();
@@ -331,12 +331,11 @@ Copyright (c) 2011 by Harvest
         this.container.html('<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + this.default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>');
       } else {
         this.container.html('<div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>');
-        search_field_markup = '';
         if (this.single_text_style) {
-          this.container.prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" />\n  <input type="text" autocomplete="off" class="display-field" />\n</div>');
+          this.container.prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="display-field" />\n  <input type="text" autocomplete="off" class="search-field" />\n</div>');
         } else {
           this.container.prepend('<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + this.default_text + '</span><div><b></b></div></a>');
-          this.container.find(".chzn-drop").prepend(search_field_markup);
+          this.container.find(".chzn-drop").prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="search-field" />\n</div>');
         }
       }
       this.form_field_jq.hide().after(this.container);
@@ -348,7 +347,7 @@ Copyright (c) 2011 by Harvest
         "width": dd_width + "px",
         "top": dd_top + "px"
       });
-      this.search_field = this.container.find('input').first();
+      this.search_field = this.container.find('.search-field').first();
       this.search_results = this.container.find('ul.chzn-results').first();
       this.search_field_scale();
       this.search_no_results = this.container.find('li.no-results').first();

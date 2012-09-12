@@ -46,17 +46,20 @@ class Chosen extends AbstractChosen
       @container.html '<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
     else
       @container.html '<div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
-      search_field_markup = ''
       if @single_text_style
         @container.prepend '''
           <div class="chzn-search">
-            <input type="text" autocomplete="off" />
             <input type="text" autocomplete="off" class="display-field" />
+            <input type="text" autocomplete="off" class="search-field" />
           </div>
         '''
       else
         @container.prepend '<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + @default_text + '</span><div><b></b></div></a>'
-        @container.find(".chzn-drop").prepend(search_field_markup)
+        @container.find(".chzn-drop").prepend '''
+          <div class="chzn-search">
+            <input type="text" autocomplete="off" class="search-field" />
+          </div>
+        '''
 
     @form_field_jq.hide().after @container
     @container.addClass( "chzn-container-" + (if @is_multiple then "multi" else "single") )
@@ -67,7 +70,7 @@ class Chosen extends AbstractChosen
 
     @dropdown.css({"width": dd_width  + "px", "top": dd_top + "px"})
 
-    @search_field = @container.find('input').first()
+    @search_field = @container.find('.search-field').first()
     @search_results = @container.find('ul.chzn-results').first()
     this.search_field_scale()
 

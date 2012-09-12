@@ -16,7 +16,7 @@
   -webkit-box-shadow: 0 4px 5px rgba(0,0,0,.15);
   -moz-box-shadow   : 0 4px 5px rgba(0,0,0,.15);
   box-shadow        : 0 4px 5px rgba(0,0,0,.15);
-  z-index: 1010;
+  z-index: 1011;
 }
 /* @end */
 
@@ -402,10 +402,8 @@
   background: transparent none;
   border: none;
   position: relative;
-  z-index: 1;
 }
 .chzn-single-text .chzn-search .display-field {
   position: absolute;
   left: 4px;
-  z-index: 0;
 }
