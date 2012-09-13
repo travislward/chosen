@@ -163,6 +163,9 @@ class Chosen extends AbstractChosen
     if not @is_multiple and not @single_text_style
       @selected_item.attr "tabindex", @search_field.attr("tabindex")
       @search_field.attr "tabindex", -1
+    else if @single_text_style
+      @display_field.show()
+      @set_selected_text(@get_selected_text())
 
     @active_field = false
     this.results_hide()
@@ -171,7 +174,6 @@ class Chosen extends AbstractChosen
     this.winnow_results_clear()
     this.clear_backstroke()
 
-    @set_selected_text(@get_selected_text()) if @single_text_style
     this.show_search_field_default()
     this.search_field_scale()
 
@@ -403,6 +405,7 @@ class Chosen extends AbstractChosen
       else
         @set_selected_text item.text
         this.single_deselect_control_build() if @allow_single_deselect
+        @display_field.show().select() if @single_text_style
 
       this.results_hide() unless evt.metaKey and @is_multiple
 
@@ -578,8 +581,9 @@ class Chosen extends AbstractChosen
     stroke = evt.which ? evt.keyCode
     if stroke is 40
       this.keydown_arrow()
-    else 
-      @search_field.focus() if $.inArray(stroke, [8,9,13,38,16]) < 0
+    else if $.inArray(stroke, [8,9,13,38,16]) < 0
+      @display_field.hide()
+      @search_field.focus()
 
   keydown_checker: (evt) ->
     stroke = evt.which ? evt.keyCode
