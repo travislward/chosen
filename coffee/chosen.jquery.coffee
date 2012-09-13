@@ -576,8 +576,10 @@ class Chosen extends AbstractChosen
 
   display_key_down: (evt) ->
     stroke = evt.which ? evt.keyCode
-    @search_field.focus() if $.inArray(stroke, [8,9,13,38,16]) < 0
-    
+    if stroke is 40
+      this.keydown_arrow()
+    else 
+      @search_field.focus() if $.inArray(stroke, [8,9,13,38,16]) < 0
 
   keydown_checker: (evt) ->
     stroke = evt.which ? evt.keyCode
