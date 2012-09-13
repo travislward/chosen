@@ -43,21 +43,21 @@ class Chosen extends AbstractChosen
     })
 
     if @is_multiple
-      @container.html '<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
+      @container.html '<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default chzn-search-input" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
     else
       @container.html '<div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
       if @single_text_style
         @container.prepend '''
           <div class="chzn-search">
-            <input type="text" autocomplete="off" class="display-field" />
-            <input type="text" autocomplete="off" class="search-field" />
+            <input type="text" autocomplete="off" class="chzn-display-field" />
+            <input type="text" autocomplete="off" class="chzn-search-input" />
           </div>
         '''
       else
         @container.prepend '<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + @default_text + '</span><div><b></b></div></a>'
         @container.find(".chzn-drop").prepend '''
           <div class="chzn-search">
-            <input type="text" autocomplete="off" class="search-field" />
+            <input type="text" autocomplete="off" class="chzn-search-input" />
           </div>
         '''
 
@@ -70,9 +70,9 @@ class Chosen extends AbstractChosen
 
     @dropdown.css({"width": dd_width  + "px", "top": dd_top + "px"})
 
-    @search_field = @container.find('.search-field').first()
+    @search_field = @container.find('.chzn-search-input').first()
     if @single_text_style
-      @display_field = @container.find(".display-field").first()
+      @display_field = @container.find(".chzn-display-field").first()
       @search_field.attr "tabindex", -1
     @search_results = @container.find('ul.chzn-results').first()
     this.search_field_scale()

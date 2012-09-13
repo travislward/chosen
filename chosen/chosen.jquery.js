@@ -331,14 +331,14 @@ Copyright (c) 2011 by Harvest
         style: 'width: ' + this.f_width + 'px;'
       });
       if (this.is_multiple) {
-        this.container.html('<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + this.default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>');
+        this.container.html('<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + this.default_text + '" class="default chzn-search-input" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>');
       } else {
         this.container.html('<div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>');
         if (this.single_text_style) {
-          this.container.prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="display-field" />\n  <input type="text" autocomplete="off" class="search-field" />\n</div>');
+          this.container.prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="chzn-display-field" />\n  <input type="text" autocomplete="off" class="chzn-search-input" />\n</div>');
         } else {
           this.container.prepend('<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + this.default_text + '</span><div><b></b></div></a>');
-          this.container.find(".chzn-drop").prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="search-field" />\n</div>');
+          this.container.find(".chzn-drop").prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="chzn-search-input" />\n</div>');
         }
       }
       this.form_field_jq.hide().after(this.container);
@@ -350,9 +350,9 @@ Copyright (c) 2011 by Harvest
         "width": dd_width + "px",
         "top": dd_top + "px"
       });
-      this.search_field = this.container.find('.search-field').first();
+      this.search_field = this.container.find('.chzn-search-input').first();
       if (this.single_text_style) {
-        this.display_field = this.container.find(".display-field").first();
+        this.display_field = this.container.find(".chzn-display-field").first();
         this.search_field.attr("tabindex", -1);
       }
       this.search_results = this.container.find('ul.chzn-results').first();
