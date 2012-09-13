@@ -112,6 +112,7 @@ class Chosen extends AbstractChosen
     @search_field.keydown (evt) => this.keydown_checker(evt)
 
     if @single_text_style
+      @display_field.focus (evt) => @display_field_focus()
       @display_field.keydown (evt) => this.display_key_down(evt)
 
     if @is_multiple
@@ -141,7 +142,7 @@ class Chosen extends AbstractChosen
         if not @active_field
           @search_field.val "" if @is_multiple
           $(document).click @click_test_action
-          this.results_show()
+          this.results_show() if not @single_text_style
         else if not @is_multiple and evt and (($(evt.target)[0] == @selected_item[0]) || $(evt.target).parents("a.chzn-single").length)
           evt.preventDefault()
           this.results_toggle()
@@ -183,8 +184,14 @@ class Chosen extends AbstractChosen
     @active_field = true
 
     @search_field.val(@search_field.val())
-    if @single_text_style then @display_field.focus() else @search_field.focus()
+    if @single_text_style
+      @display_field.focus() if document.activeElement isnt @display_field[0]
+    else
+      @search_field.focus()
 
+  display_field_focus: () ->  
+    @display_field.select()
+    @activate_field() if not @active_field
 
   test_active_click: (evt) ->
     if $(evt.target).parents('#' + @container_id).length

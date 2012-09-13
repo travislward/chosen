@@ -423,6 +423,9 @@ Copyright (c) 2011 by Harvest
         return _this.keydown_checker(evt);
       });
       if (this.single_text_style) {
+        this.display_field.focus(function(evt) {
+          return _this.display_field_focus();
+        });
         this.display_field.keydown(function(evt) {
           return _this.display_key_down(evt);
         });
@@ -470,7 +473,7 @@ Copyright (c) 2011 by Harvest
           if (!this.active_field) {
             if (this.is_multiple) this.search_field.val("");
             $(document).click(this.click_test_action);
-            this.results_show();
+            if (!this.single_text_style) this.results_show();
           } else if (!this.is_multiple && evt && (($(evt.target)[0] === this.selected_item[0]) || $(evt.target).parents("a.chzn-single").length)) {
             evt.preventDefault();
             this.results_toggle();
@@ -519,10 +522,17 @@ Copyright (c) 2011 by Harvest
       this.active_field = true;
       this.search_field.val(this.search_field.val());
       if (this.single_text_style) {
-        return this.display_field.focus();
+        if (document.activeElement !== this.display_field[0]) {
+          return this.display_field.focus();
+        }
       } else {
         return this.search_field.focus();
       }
+    };
+
+    Chosen.prototype.display_field_focus = function() {
+      this.display_field.select();
+      if (!this.active_field) return this.activate_field();
     };
 
     Chosen.prototype.test_active_click = function(evt) {
@@ -1006,8 +1016,12 @@ Copyright (c) 2011 by Harvest
     Chosen.prototype.display_key_down = function(evt) {
       var stroke, _ref;
       stroke = (_ref = evt.which) != null ? _ref : evt.keyCode;
-      if ($.inArray(stroke, [8, 9, 13, 38, 16]) < 0) {
-        return this.search_field.focus();
+      if (stroke === 40) {
+        return this.keydown_arrow();
+      } else {
+        if ($.inArray(stroke, [8, 9, 13, 38, 16]) < 0) {
+          return this.search_field.focus();
+        }
       }
     };
 
