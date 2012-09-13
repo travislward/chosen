@@ -71,6 +71,9 @@ class Chosen extends AbstractChosen
     @dropdown.css({"width": dd_width  + "px", "top": dd_top + "px"})
 
     @search_field = @container.find('.search-field').first()
+    if @single_text_style
+      @display_field = @container.find(".display-field").first()
+      @search_field.attr "tabindex", -1
     @search_results = @container.find('ul.chzn-results').first()
     this.search_field_scale()
 
@@ -108,12 +111,12 @@ class Chosen extends AbstractChosen
     @search_field.keyup (evt) => this.keyup_checker(evt)
     @search_field.keydown (evt) => this.keydown_checker(evt)
 
+    if @single_text_style
+      @display_field.keydown (evt) => this.display_key_down(evt)
+
     if @is_multiple
       @search_choices.click (evt) => this.choices_click(evt)
       @search_field.focus (evt) => this.input_focus(evt)
-    else if @single_text_style
-      @search_field.focus (evt) => this.input_focus(evt)
-      @container.click (evt) => evt.preventDefault() # gobble click of anchor
     else
       @container.click (evt) => evt.preventDefault() # gobble click of anchor
 
@@ -180,8 +183,7 @@ class Chosen extends AbstractChosen
     @active_field = true
 
     @search_field.val(@search_field.val())
-    @search_field.focus()
-    @search_field.siblings(".display-field").val("")
+    if @single_text_style then @display_field.focus() else @search_field.focus()
 
 
   test_active_click: (evt) ->
@@ -288,8 +290,10 @@ class Chosen extends AbstractChosen
       ti = @form_field_jq.attr "tabindex"
       @form_field_jq.attr "tabindex", -1
 
-      if @is_multiple or @single_text_style
+      if @is_multiple
         @search_field.attr "tabindex", ti
+      else if @single_text_style
+        @display_field.attr "tabindex", ti
       else
         @selected_item.attr "tabindex", ti
         @search_field.attr "tabindex", -1
@@ -429,7 +433,7 @@ class Chosen extends AbstractChosen
 
   set_selected_text: (text=@default_text) ->
     if @single_text_style
-      @container.find(".chzn-search input.display-field").val(text)
+      @display_field.val(text)
     else
       @selected_item.find("span").text(text)
 
@@ -440,7 +444,7 @@ class Chosen extends AbstractChosen
 
   clear_selected_val: () ->
     if @single_text_style
-      @container.find(".chzn-search input.display-field").val("")
+      @display_field.val("")
 
   single_deselect_control_build: ->
     @selected_item.find("span").first().after "<abbr class=\"search-choice-close\"></abbr>" if @allow_single_deselect and @selected_item.find("abbr").length < 1
@@ -562,6 +566,11 @@ class Chosen extends AbstractChosen
   clear_backstroke: ->
     @pending_backstroke.removeClass "search-choice-focus" if @pending_backstroke
     @pending_backstroke = null
+
+  display_key_down: (evt) ->
+    stroke = evt.which ? evt.keyCode
+    @search_field.focus() if $.inArray(stroke, [8,9,13,38,16]) < 0
+    
 
   keydown_checker: (evt) ->
     stroke = evt.which ? evt.keyCode

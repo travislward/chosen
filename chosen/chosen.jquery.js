@@ -217,6 +217,9 @@ Copyright (c) 2011 by Harvest
       var stroke, _ref;
       stroke = (_ref = evt.which) != null ? _ref : evt.keyCode;
       this.search_field_scale();
+      if ($.inArray(stroke, [8, 9, 13, 38, 16]) < 0 && this.single_text_style) {
+        this.display_field.val("");
+      }
       switch (stroke) {
         case 8:
           if (this.is_multiple && this.backstroke_length < 1 && this.choices > 0) {
@@ -348,6 +351,10 @@ Copyright (c) 2011 by Harvest
         "top": dd_top + "px"
       });
       this.search_field = this.container.find('.search-field').first();
+      if (this.single_text_style) {
+        this.display_field = this.container.find(".display-field").first();
+        this.search_field.attr("tabindex", -1);
+      }
       this.search_results = this.container.find('ul.chzn-results').first();
       this.search_field_scale();
       this.search_no_results = this.container.find('li.no-results').first();
@@ -415,19 +422,17 @@ Copyright (c) 2011 by Harvest
       this.search_field.keydown(function(evt) {
         return _this.keydown_checker(evt);
       });
+      if (this.single_text_style) {
+        this.display_field.keydown(function(evt) {
+          return _this.display_key_down(evt);
+        });
+      }
       if (this.is_multiple) {
         this.search_choices.click(function(evt) {
           return _this.choices_click(evt);
         });
         return this.search_field.focus(function(evt) {
           return _this.input_focus(evt);
-        });
-      } else if (this.single_text_style) {
-        this.search_field.focus(function(evt) {
-          return _this.input_focus(evt);
-        });
-        return this.container.click(function(evt) {
-          return evt.preventDefault();
         });
       } else {
         return this.container.click(function(evt) {
@@ -513,8 +518,11 @@ Copyright (c) 2011 by Harvest
       this.container.addClass("chzn-container-active");
       this.active_field = true;
       this.search_field.val(this.search_field.val());
-      this.search_field.focus();
-      return this.search_field.siblings(".display-field").val("");
+      if (this.single_text_style) {
+        return this.display_field.focus();
+      } else {
+        return this.search_field.focus();
+      }
     };
 
     Chosen.prototype.test_active_click = function(evt) {
@@ -644,8 +652,10 @@ Copyright (c) 2011 by Harvest
       if (this.form_field_jq.attr("tabindex")) {
         ti = this.form_field_jq.attr("tabindex");
         this.form_field_jq.attr("tabindex", -1);
-        if (this.is_multiple || this.single_text_style) {
+        if (this.is_multiple) {
           return this.search_field.attr("tabindex", ti);
+        } else if (this.single_text_style) {
+          return this.display_field.attr("tabindex", ti);
         } else {
           this.selected_item.attr("tabindex", ti);
           return this.search_field.attr("tabindex", -1);
@@ -817,7 +827,7 @@ Copyright (c) 2011 by Harvest
     Chosen.prototype.set_selected_text = function(text) {
       if (text == null) text = this.default_text;
       if (this.single_text_style) {
-        return this.container.find(".chzn-search input.display-field").val(text);
+        return this.display_field.val(text);
       } else {
         return this.selected_item.find("span").text(text);
       }
@@ -831,9 +841,7 @@ Copyright (c) 2011 by Harvest
     };
 
     Chosen.prototype.clear_selected_val = function() {
-      if (this.single_text_style) {
-        return this.container.find(".chzn-search input.display-field").val("");
-      }
+      if (this.single_text_style) return this.display_field.val("");
     };
 
     Chosen.prototype.single_deselect_control_build = function() {
@@ -993,6 +1001,14 @@ Copyright (c) 2011 by Harvest
         this.pending_backstroke.removeClass("search-choice-focus");
       }
       return this.pending_backstroke = null;
+    };
+
+    Chosen.prototype.display_key_down = function(evt) {
+      var stroke, _ref;
+      stroke = (_ref = evt.which) != null ? _ref : evt.keyCode;
+      if ($.inArray(stroke, [8, 9, 13, 38, 16]) < 0) {
+        return this.search_field.focus();
+      }
     };
 
     Chosen.prototype.keydown_checker = function(evt) {

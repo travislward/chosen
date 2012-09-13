@@ -217,6 +217,9 @@ Copyright (c) 2011 by Harvest
       var stroke, _ref;
       stroke = (_ref = evt.which) != null ? _ref : evt.keyCode;
       this.search_field_scale();
+      if ($.inArray(stroke, [8, 9, 13, 38, 16]) < 0 && this.single_text_style) {
+        this.display_field.val("");
+      }
       switch (stroke) {
         case 8:
           if (this.is_multiple && this.backstroke_length < 1 && this.choices > 0) {
