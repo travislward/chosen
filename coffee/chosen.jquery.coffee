@@ -49,7 +49,7 @@ class Chosen extends AbstractChosen
       if @single_text_style
         @container.prepend '''
           <div class="chzn-search">
-            <input type="text" autocomplete="off" class="chzn-display-field" />
+            <input type="text" autocomplete="off" class="chzn-display-field" disabled />
             <input type="text" autocomplete="off" class="chzn-search-input" />
           </div>
         '''
@@ -111,12 +111,10 @@ class Chosen extends AbstractChosen
     @search_field.keyup (evt) => this.keyup_checker(evt)
     @search_field.keydown (evt) => this.keydown_checker(evt)
 
-    if @single_text_style
-      @display_field.focus (evt) => @display_field_focus()
-      @display_field.keydown (evt) => this.display_key_down(evt)
-
     if @is_multiple
       @search_choices.click (evt) => this.choices_click(evt)
+
+    if @is_multiple or @single_text_style
       @search_field.focus (evt) => this.input_focus(evt)
     else
       @container.click (evt) => evt.preventDefault() # gobble click of anchor
@@ -139,10 +137,12 @@ class Chosen extends AbstractChosen
       if evt and evt.type is "mousedown" and not @results_showing
         evt.stopPropagation()
       if not @pending_destroy_click and not target_closelink
+
         if not @active_field
           @search_field.val "" if @is_multiple
           $(document).click @click_test_action
-          this.results_show() if not @single_text_style
+          this.results_show() if not @single_text_style || (evt && evt.type is "mousedown")
+          @search_field.select() if @single_text_style
         else if not @is_multiple and evt and (($(evt.target)[0] == @selected_item[0]) || $(evt.target).parents("a.chzn-single").length)
           evt.preventDefault()
           this.results_toggle()
@@ -163,9 +163,6 @@ class Chosen extends AbstractChosen
     if not @is_multiple and not @single_text_style
       @selected_item.attr "tabindex", @search_field.attr("tabindex")
       @search_field.attr "tabindex", -1
-    else if @single_text_style
-      @display_field.show()
-      @set_selected_text(@get_selected_text())
 
     @active_field = false
     this.results_hide()
@@ -186,14 +183,8 @@ class Chosen extends AbstractChosen
     @active_field = true
 
     @search_field.val(@search_field.val())
-    if @single_text_style
-      @display_field.focus() if document.activeElement isnt @display_field[0]
-    else
-      @search_field.focus()
-
-  display_field_focus: () ->  
-    @display_field.select()
-    @activate_field() if not @active_field
+    #@search_field.focus()
+    @search_field.select()
 
   test_active_click: (evt) ->
     if $(evt.target).parents('#' + @container_id).length
@@ -263,6 +254,8 @@ class Chosen extends AbstractChosen
       else if high_top < visible_top
         @search_results.scrollTop high_top
 
+      #TODO @display_field.val(@result_highlight.text()) if @single_text_style
+
   result_clear_highlight: ->
     @result_highlight.removeClass "highlighted" if @result_highlight
     @result_highlight = null
@@ -282,7 +275,7 @@ class Chosen extends AbstractChosen
     @results_showing = true
 
     @search_field.focus()
-    @search_field.val @search_field.val()
+    #TODO@search_field.val @search_field.val()
 
     this.winnow_results()
 
@@ -299,16 +292,16 @@ class Chosen extends AbstractChosen
       ti = @form_field_jq.attr "tabindex"
       @form_field_jq.attr "tabindex", -1
 
-      if @is_multiple
+      if @is_multiple or @single_text_style
         @search_field.attr "tabindex", ti
-      else if @single_text_style
-        @display_field.attr "tabindex", ti
       else
         @selected_item.attr "tabindex", ti
         @search_field.attr "tabindex", -1
 
   show_search_field_default: ->
-    if @is_multiple and @choices < 1 and not @active_field
+    if @single_text_style and @current_value != ""
+      @search_field.val @current_value
+    else if @single_text_style or (@is_multiple and @choices < 1 and not @active_field)
       @search_field.val(@default_text)
       @search_field.addClass "default"
     else
@@ -405,15 +398,16 @@ class Chosen extends AbstractChosen
       else
         @set_selected_text item.text
         this.single_deselect_control_build() if @allow_single_deselect
-        @display_field.show().select() if @single_text_style
+        #TODO@display_field.show().select() if @single_text_style
 
       this.results_hide() unless evt.metaKey and @is_multiple
 
-      @search_field.val ""
+      @search_field.val "" unless @single_text_style
 
       @form_field_jq.trigger "change", {'selected': @form_field.options[item.options_index].value} if @is_multiple || @form_field_jq.val() != @current_value
       @current_value = @form_field_jq.val()
       this.search_field_scale()
+      @display_field.val("") if @single_text_style
 
   result_activate: (el) ->
     el.addClass("active-result")
@@ -443,7 +437,7 @@ class Chosen extends AbstractChosen
 
   set_selected_text: (text=@default_text) ->
     if @single_text_style
-      @display_field.val(text)
+      @search_field.val(text)
     else
       @selected_item.find("span").text(text)
 
@@ -453,8 +447,8 @@ class Chosen extends AbstractChosen
     do_high.text()
 
   clear_selected_val: () ->
-    if @single_text_style
-      @display_field.val("")
+    #if @single_text_style
+    #  #TODO@display_field.val("")
 
   single_deselect_control_build: ->
     @selected_item.find("span").first().after "<abbr class=\"search-choice-close\"></abbr>" if @allow_single_deselect and @selected_item.find("abbr").length < 1
@@ -463,8 +457,11 @@ class Chosen extends AbstractChosen
     this.no_results_clear()
 
     results = 0
+    if @single_text_style
+      searchText = if @search_field.val() is @default_text or @search_field.val() is @current_valuef then "" else $('<div/>').text($.trim(@search_field.val())).html()
+    else
+      searchText = if @search_field.val() is @default_text then "" else $('<div/>').text($.trim(@search_field.val())).html()
 
-    searchText = if @search_field.val() is @default_text then "" else $('<div/>').text($.trim(@search_field.val())).html()
     regexAnchor = if @search_contains then "" else "^"
     regex = new RegExp(regexAnchor + searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i')
     zregex = new RegExp(searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i')
@@ -576,14 +573,6 @@ class Chosen extends AbstractChosen
   clear_backstroke: ->
     @pending_backstroke.removeClass "search-choice-focus" if @pending_backstroke
     @pending_backstroke = null
-
-  display_key_down: (evt) ->
-    stroke = evt.which ? evt.keyCode
-    if stroke is 40
-      this.keydown_arrow()
-    else if $.inArray(stroke, [8,9,13,38,16]) < 0
-      @display_field.hide()
-      @search_field.focus()
 
   keydown_checker: (evt) ->
     stroke = evt.which ? evt.keyCode

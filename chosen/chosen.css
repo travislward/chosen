@@ -403,7 +403,8 @@
   border: none;
   position: relative;
 }
-.chzn-single-text .chzn-search .display-field {
+.chzn-single-text .chzn-search .chzn-display-field {
   position: absolute;
   left: 4px;
+  color: #999;
 }

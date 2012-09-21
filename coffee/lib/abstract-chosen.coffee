@@ -94,8 +94,8 @@ class AbstractChosen
     stroke = evt.which ? evt.keyCode
     this.search_field_scale()
 
-    if $.inArray(stroke, [8,9,13,38,16]) < 0 and @single_text_style
-      @display_field.val("")
+    #if $.inArray(stroke, [8,9,13,38,16]) < 0 and @single_text_style
+    #  @display_field.val("")
 
     switch stroke
       when 8
