@@ -300,7 +300,7 @@ class Chosen extends AbstractChosen
 
   show_search_field_default: ->
     if @single_text_style and @current_value != ""
-      @search_field.val @current_value
+      @search_field.val @current_text
     else if @single_text_style or (@is_multiple and @choices < 1 and not @active_field)
       @search_field.val(@default_text)
       @search_field.addClass "default"
@@ -397,6 +397,7 @@ class Chosen extends AbstractChosen
         this.choice_build item
       else
         @set_selected_text item.text
+        @current_text = item.text
         this.single_deselect_control_build() if @allow_single_deselect
         #TODO@display_field.show().select() if @single_text_style
 
@@ -435,7 +436,7 @@ class Chosen extends AbstractChosen
     else
       return false
 
-  set_selected_text: (text=@default_text) ->
+  set_selected_text: (text=@current_text || @default_text) ->
     if @single_text_style
       @search_field.val(text)
     else
