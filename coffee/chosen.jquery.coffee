@@ -217,7 +217,7 @@ class Chosen extends AbstractChosen
           this.choice_build data
         else if data.selected and not @is_multiple
           @selected_item.removeClass("chzn-default")
-          @set_selected_text data.text
+          @set_selected_text(data.text)
           this.single_deselect_control_build() if @allow_single_deselect
 
     this.search_field_disabled()
@@ -397,7 +397,6 @@ class Chosen extends AbstractChosen
         this.choice_build item
       else
         @set_selected_text item.text
-        @current_text = item.text
         this.single_deselect_control_build() if @allow_single_deselect
         #TODO@display_field.show().select() if @single_text_style
 
@@ -436,11 +435,12 @@ class Chosen extends AbstractChosen
     else
       return false
 
-  set_selected_text: (text=@current_text || @default_text) ->
+  set_selected_text: (text) ->
+    @current_text = text if text
     if @single_text_style
-      @search_field.val(text)
+      @search_field.val(@current_text)
     else
-      @selected_item.find("span").text(text)
+      @selected_item.find("span").text(@current_text)
 
   get_selected_text: () ->
     selected_results = if not @is_multiple then @search_results.find(".result-selected.active-result") else []
