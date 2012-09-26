@@ -271,7 +271,7 @@ class Chosen extends AbstractChosen
       @form_field_jq.trigger("liszt:maxselected", {chosen: this})
       return false
 
-    dd_top = if @is_multiple then @container.height() else (@container.height() - 1)
+    dd_top = if @is_multiple or @single_text_style then @container.height() else (@container.height() - 1)
     @form_field_jq.trigger("liszt:showing_dropdown", {chosen: this})
     @dropdown.css {"top":  dd_top + "px", "left":0}
     @results_showing = true
