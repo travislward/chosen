@@ -611,7 +611,7 @@ Copyright (c) 2011 by Harvest
         });
         return false;
       }
-      dd_top = this.is_multiple ? this.container.height() : this.container.height() - 1;
+      dd_top = this.is_multiple || this.single_text_style ? this.container.height() : this.container.height() - 1;
       this.form_field_jq.trigger("liszt:showing_dropdown", {
         chosen: this
       });
