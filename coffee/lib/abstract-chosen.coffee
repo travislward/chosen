@@ -28,6 +28,7 @@ class AbstractChosen
     @result_highlighted = null
     @result_single_selected = null
     @enable_group_select = @options.enable_group_select || false
+    @single_text_style = if @options.single_text_style? then @options.single_text_style else true
     @allow_single_deselect = if @options.allow_single_deselect? and @form_field.options[0]? and @form_field.options[0].text is "" then @options.allow_single_deselect else false
     @disable_search_threshold = @options.disable_search_threshold || 0
     @disable_search = @options.disable_search || false
@@ -54,7 +55,7 @@ class AbstractChosen
     setTimeout (=> this.container_mousedown()), 50 unless @active_field
   
   input_blur: (evt) ->
-    if not @mouse_on_container
+    if not @mouse_on_container  
       @active_field = false
       setTimeout (=> this.blur_test()), 100
 
@@ -112,6 +113,9 @@ class AbstractChosen
   keyup_checker: (evt) ->
     stroke = evt.which ? evt.keyCode
     this.search_field_scale()
+
+    #if $.inArray(stroke, [8,9,13,38,16]) < 0 and @single_text_style
+    #  @display_field.val("")
 
     switch stroke
       when 8

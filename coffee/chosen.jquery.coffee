@@ -32,19 +32,36 @@ class Chosen extends AbstractChosen
 
     @f_width = @form_field_jq.outerWidth()
 
-    container_div = ($ "<div />", {
+    container_classes = ['chzn-container']
+    container_classes.push 'chzn-rtl' if @is_rtl
+    container_classes.push 'chzn-single-text' if @single_text_style
+
+    @container = ($ "<div />", {
       id: @container_id
-      class: "chzn-container#{ if @is_rtl then ' chzn-rtl' else '' }"
+      class: container_classes.join ' '
       style: 'width: ' + (@f_width) + 'px;' #use parens around @f_width so coffeescript doesn't think + ' px' is a function parameter
     })
 
     if @is_multiple
-      container_div.html '<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
+      @container.html '<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default chzn-search-input" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
     else
-      container_div.html '<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + @default_text + '</span><div><b></b></div></a><div class="chzn-drop" style="left:-9000px;"><div class="chzn-search"><input type="text" autocomplete="off" /></div><ul class="chzn-results"></ul></div>'
+      @container.html '<div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
+      if @single_text_style
+        @container.prepend '''
+          <div class="chzn-search">
+            <input type="text" autocomplete="off" class="chzn-display-field" disabled />
+            <input type="text" autocomplete="off" class="chzn-search-input" />
+          </div>
+        '''
+      else
+        @container.prepend '<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + @default_text + '</span><div><b></b></div></a>'
+        @container.find(".chzn-drop").prepend '''
+          <div class="chzn-search">
+            <input type="text" autocomplete="off" class="chzn-search-input" />
+          </div>
+        '''
 
-    @form_field_jq.hide().after container_div
-    @container = ($ '#' + @container_id)
+    @form_field_jq.hide().after @container
     @container.addClass( "chzn-container-" + (if @is_multiple then "multi" else "single") )
     @dropdown = @container.find('div.chzn-drop').first()
     
@@ -55,7 +72,10 @@ class Chosen extends AbstractChosen
 
     @dropdown.css({"width": dd_width  + "px", "top": dd_top + "px"})
 
-    @search_field = @container.find('input').first()
+    @search_field = @container.find('.chzn-search-input').first()
+    if @single_text_style
+      @display_field = @container.find(".chzn-display-field").first()
+      @search_field.attr "tabindex", -1
     @search_results = @container.find('ul.chzn-results').first()
     this.search_field_scale()
 
@@ -69,6 +89,7 @@ class Chosen extends AbstractChosen
       @selected_item = @container.find('.chzn-single').first()
       sf_width = dd_width - get_side_border_padding(@search_container) - get_side_border_padding(@search_field)
       @search_field.css( {"width" : sf_width + "px"} )
+      @search_field.siblings('input').css( {"width" : sf_width + "px"} ) if @single_text_style
 
     this.results_build()
     this.set_tab_index()
@@ -94,6 +115,8 @@ class Chosen extends AbstractChosen
 
     if @is_multiple
       @search_choices.click (evt) => this.choices_click(evt)
+
+    if @is_multiple or @single_text_style
       @search_field.focus (evt) => this.input_focus(evt)
     else
       @container.click (evt) => evt.preventDefault() # gobble click of anchor
@@ -116,10 +139,12 @@ class Chosen extends AbstractChosen
       if evt and evt.type is "mousedown" and not @results_showing
         evt.stopPropagation()
       if not @pending_destroy_click and not target_closelink
+
         if not @active_field
           @search_field.val "" if @is_multiple
           $(document).click @click_test_action
-          this.results_show()
+          this.results_show() if not @single_text_style && (evt && evt.type is "mousedown")
+          @search_field.select() if @single_text_style
         else if not @is_multiple and evt and (($(evt.target)[0] == @selected_item[0]) || $(evt.target).parents("a.chzn-single").length)
           evt.preventDefault()
           this.results_toggle()
@@ -137,7 +162,7 @@ class Chosen extends AbstractChosen
   close_field: ->
     $(document).unbind "click", @click_test_action
 
-    if not @is_multiple
+    if not @is_multiple and not @single_text_style
       @selected_item.attr "tabindex", @search_field.attr("tabindex")
       @search_field.attr "tabindex", -1
 
@@ -152,7 +177,7 @@ class Chosen extends AbstractChosen
     this.search_field_scale()
 
   activate_field: ->
-    if not @is_multiple and not @active_field
+    if not @is_multiple and not @active_field and not @single_text_style
       @search_field.attr "tabindex", (@selected_item.attr "tabindex")
       @selected_item.attr "tabindex", -1
 
@@ -160,8 +185,8 @@ class Chosen extends AbstractChosen
     @active_field = true
 
     @search_field.val(@search_field.val())
-    @search_field.focus()
-
+    #@search_field.focus()
+    @search_field.select()
 
   test_active_click: (evt) ->
     if $(evt.target).parents('#' + @container_id).length
@@ -177,7 +202,8 @@ class Chosen extends AbstractChosen
       @search_choices.find("li.search-choice").remove()
       @choices = 0
     else if not @is_multiple
-      @selected_item.addClass("chzn-default").find("span").text(@default_text)
+      @selected_item.addClass("chzn-default")
+      @set_selected_text()
       if @disable_search or @form_field.options.length <= @disable_search_threshold
         @container.addClass "chzn-container-single-nosearch"
       else
@@ -192,7 +218,8 @@ class Chosen extends AbstractChosen
         if data.selected and @is_multiple
           this.choice_build data
         else if data.selected and not @is_multiple
-          @selected_item.removeClass("chzn-default").find("span").text data.text
+          @selected_item.removeClass("chzn-default")
+          @set_selected_text(data.text)
           this.single_deselect_control_build() if @allow_single_deselect
 
     this.search_field_disabled()
@@ -229,6 +256,8 @@ class Chosen extends AbstractChosen
       else if high_top < visible_top
         @search_results.scrollTop high_top
 
+      #TODO @display_field.val(@result_highlight.text()) if @single_text_style
+
   result_clear_highlight: ->
     @result_highlight.removeClass "highlighted" if @result_highlight
     @result_highlight = null
@@ -248,7 +277,7 @@ class Chosen extends AbstractChosen
     @results_showing = true
 
     @search_field.focus()
-    @search_field.val @search_field.val()
+    #TODO@search_field.val @search_field.val()
 
     this.winnow_results()
     this.select_all_toggle() if @enable_select_all
@@ -295,14 +324,16 @@ class Chosen extends AbstractChosen
       ti = @form_field_jq.attr "tabindex"
       @form_field_jq.attr "tabindex", -1
 
-      if @is_multiple
+      if @is_multiple or @single_text_style
         @search_field.attr "tabindex", ti
       else
         @selected_item.attr "tabindex", ti
         @search_field.attr "tabindex", -1
 
   show_search_field_default: ->
-    if @is_multiple and @choices < 1 and not @active_field
+    if @single_text_style and @current_value != ""
+      @search_field.val @current_text
+    else if @single_text_style or (@is_multiple and @choices < 1 and not @active_field)
       @search_field.val(@default_text)
       @search_field.addClass "default"
     else
@@ -369,7 +400,7 @@ class Chosen extends AbstractChosen
 
   results_reset: ->
     @form_field.options[0].selected = true
-    @selected_item.find("span").text @default_text
+    @set_selected_text()
     @selected_item.addClass("chzn-default") if not @is_multiple
     this.show_search_field_default()
     this.results_reset_cleanup()
@@ -405,16 +436,19 @@ class Chosen extends AbstractChosen
       if @is_multiple
         this.choice_build item
       else
-        @selected_item.find("span").first().text item.text
+        @set_selected_text item.text
+        @search_field.select()
         this.single_deselect_control_build() if @allow_single_deselect
+        #TODO@display_field.show().select() if @single_text_style
 
       this.results_hide() unless evt.metaKey and @is_multiple
 
-      @search_field.val ""
+      @search_field.val "" unless @single_text_style
 
       @form_field_jq.trigger "change", {'selected': @form_field.options[item.options_index].value} if @is_multiple || @form_field_jq.val() != @current_value
       @current_value = @form_field_jq.val()
       this.search_field_scale()
+      @display_field.val("") if @single_text_style
 
   result_activate: (el) ->
     el.addClass("active-result")
@@ -442,6 +476,22 @@ class Chosen extends AbstractChosen
     else
       return false
 
+  set_selected_text: (text) ->
+    @current_text = text if text
+    if @single_text_style
+      @search_field.val(@current_text)
+    else
+      @selected_item.find("span").text(@current_text)
+
+  get_selected_text: () ->
+    selected_results = if not @is_multiple then @search_results.find(".result-selected.active-result") else []
+    do_high = if selected_results.length then selected_results.first() else @search_results.find(".active-result").first()
+    do_high.text()
+
+  clear_selected_val: () ->
+    #if @single_text_style
+    #  #TODO@display_field.val("")
+
   single_deselect_control_build: ->
     @selected_item.find("span").first().after "<abbr class=\"search-choice-close\"></abbr>" if @allow_single_deselect and @selected_item.find("abbr").length < 1
 
@@ -449,8 +499,11 @@ class Chosen extends AbstractChosen
     this.no_results_clear()
 
     results = 0
+    if @single_text_style
+      searchText = if @search_field.val() is @default_text or @search_field.val() is @current_valuef then "" else $('<div/>').text($.trim(@search_field.val())).html()
+    else
+      searchText = if @search_field.val() is @default_text then "" else $('<div/>').text($.trim(@search_field.val())).html()
 
-    @searchText = if @search_field.val() is @default_text then "" else $('<div/>').text($.trim(@search_field.val())).html()
     regexAnchor = if @search_contains then "" else "^"
     @regex = new RegExp(regexAnchor + @searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i')
     @zregex = new RegExp(@searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i')
@@ -586,6 +639,8 @@ class Chosen extends AbstractChosen
       when 40
         this.keydown_arrow()
         break
+      else
+        @clear_selected_val()
 
   search_field_scale: ->
     if @is_multiple
