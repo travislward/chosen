@@ -30,6 +30,7 @@ class AbstractChosen
     @enable_group_select = @options.enable_group_select || false
     @allow_single_deselect = if @options.allow_single_deselect? and @form_field.options[0]? and @form_field.options[0].text is "" then @options.allow_single_deselect else false
     @disable_search_threshold = @options.disable_search_threshold || 0
+    @disable_search = @options.disable_search || false
     @enable_select_all = if @options.enable_select_all? and @is_multiple then @options.enable_select_all else false
     @search_contains = @options.search_contains || false
     @choices = 0
