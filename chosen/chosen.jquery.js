@@ -930,13 +930,13 @@ Copyright (c) 2011 by Harvest
     };
 
     Chosen.prototype.winnow_results = function() {
-      var found, option, regexAnchor, result, result_id, results, searchText, text, _i, _len, _ref;
+      var found, option, regexAnchor, result, result_id, results, text, _i, _len, _ref;
       this.no_results_clear();
       results = 0;
       if (this.single_text_style) {
-        searchText = this.search_field.val() === this.default_text || this.search_field.val() === this.current_valuef ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
+        this.searchText = this.search_field.val() === this.default_text || this.search_field.val() === this.current_valuef ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
       } else {
-        searchText = this.search_field.val() === this.default_text ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
+        this.searchText = this.search_field.val() === this.default_text ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
       }
       regexAnchor = this.search_contains ? "" : "^";
       this.regex = new RegExp(regexAnchor + this.searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i');
