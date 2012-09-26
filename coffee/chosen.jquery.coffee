@@ -141,7 +141,7 @@ class Chosen extends AbstractChosen
         if not @active_field
           @search_field.val "" if @is_multiple
           $(document).click @click_test_action
-          this.results_show() if not @single_text_style || (evt && evt.type is "mousedown")
+          this.results_show() if not @single_text_style && (evt && evt.type is "mousedown")
           @search_field.select() if @single_text_style
         else if not @is_multiple and evt and (($(evt.target)[0] == @selected_item[0]) || $(evt.target).parents("a.chzn-single").length)
           evt.preventDefault()
@@ -397,6 +397,7 @@ class Chosen extends AbstractChosen
         this.choice_build item
       else
         @set_selected_text item.text
+        @search_field.select()
         this.single_deselect_control_build() if @allow_single_deselect
         #TODO@display_field.show().select() if @single_text_style
 
