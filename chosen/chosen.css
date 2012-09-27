@@ -157,6 +157,7 @@
   position: relative;
 }
 .chzn-container-single.chzn-single-text .chzn-search input {
+  background-color: transparent;
   font-size: 15px;
   height: 29px;
   padding-left: 8px;
