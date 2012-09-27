@@ -154,6 +154,7 @@
   background: white;
   margin: 0;
   padding: 0;
+  position: relative;
 }
 .chzn-container-single.chzn-single-text .chzn-search input {
   background-color: transparent;
@@ -161,9 +162,14 @@
   height: 29px;
   padding-left: 8px;
 }
-.chzn-single-text .chzn-display-field {
+.chzn-container-single.chzn-single-text .chzn-search input.chzn-search-input {
+  position: relative;
+  z-index: 2;
+}
+.chzn-container-single.chzn-single-text .chzn-search input.chzn-display-field {
   border-color: transparent !important;
   position: absolute;
+  z-index: 1;
   -webkit-box-shadow: none !important;
   -moz-box-shadow   : none !important;
   box-shadow        : none !important;
