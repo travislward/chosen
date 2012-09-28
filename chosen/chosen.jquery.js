@@ -503,6 +503,7 @@ Copyright (c) 2011 by Harvest
       if (!this.active_field_click) {
         return evt.preventDefault();
       } else {
+        this.results_show();
         if (this.search_field.val() === this.default_text) {
           return this.search_field.val("");
         }
@@ -863,7 +864,7 @@ Copyright (c) 2011 by Harvest
       this.no_results_clear();
       results = 0;
       if (this.single_text_style) {
-        searchText = this.search_field.val() === this.default_text || this.search_field.val() === this.current_valuef ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
+        searchText = this.search_field.val() === this.default_text || this.search_field.val() === this.current_text ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
       } else {
         searchText = this.search_field.val() === this.default_text ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
       }

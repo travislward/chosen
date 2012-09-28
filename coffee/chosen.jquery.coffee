@@ -163,6 +163,7 @@ class Chosen extends AbstractChosen
     if !@active_field_click
       evt.preventDefault()
     else
+      @results_show()
       @search_field.val("") if @search_field.val() is @default_text
 
   close_field: ->
@@ -466,7 +467,7 @@ class Chosen extends AbstractChosen
 
     results = 0
     if @single_text_style
-      searchText = if @search_field.val() is @default_text or @search_field.val() is @current_valuef then "" else $('<div/>').text($.trim(@search_field.val())).html()
+      searchText = if @search_field.val() is @default_text or @search_field.val() is @current_text then "" else $('<div/>').text($.trim(@search_field.val())).html()
     else
       searchText = if @search_field.val() is @default_text then "" else $('<div/>').text($.trim(@search_field.val())).html()
 
