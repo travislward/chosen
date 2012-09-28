@@ -49,8 +49,8 @@ class Chosen extends AbstractChosen
       if @single_text_style
         @container.prepend '''
           <div class="chzn-search">
-            <input type="text" autocomplete="off" class="chzn-display-field" disabled />
             <input type="text" autocomplete="off" class="chzn-search-input" />
+            <input type="text" autocomplete="off" class="chzn-display-field" disabled />
           </div>
         '''
       else

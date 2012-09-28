@@ -332,7 +332,7 @@ Copyright (c) 2011 by Harvest
       } else {
         this.container.html('<div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>');
         if (this.single_text_style) {
-          this.container.prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="chzn-display-field" disabled />\n  <input type="text" autocomplete="off" class="chzn-search-input" />\n</div>');
+          this.container.prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="chzn-search-input" />\n  <input type="text" autocomplete="off" class="chzn-display-field" disabled />\n</div>');
         } else {
           this.container.prepend('<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + this.default_text + '</span><div><b></b></div></a>');
           this.container.find(".chzn-drop").prepend('<div class="chzn-search">\n  <input type="text" autocomplete="off" class="chzn-search-input" />\n</div>');

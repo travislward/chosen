@@ -169,6 +169,7 @@
 .chzn-container-single.chzn-single-text .chzn-search input.chzn-display-field {
   border-color: transparent !important;
   position: absolute;
+  left: 0;
   z-index: 1;
   -webkit-box-shadow: none !important;
   -moz-box-shadow   : none !important;
