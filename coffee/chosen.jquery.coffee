@@ -110,6 +110,8 @@ class Chosen extends AbstractChosen
     @search_field.blur (evt) => this.input_blur(evt)
     @search_field.keyup (evt) => this.keyup_checker(evt)
     @search_field.keydown (evt) => this.keydown_checker(evt)
+    if @single_text_style
+      @search_field.mouseup (evt) => this.search_field_mouseup(evt)
 
     if @is_multiple
       @search_choices.click (evt) => this.choices_click(evt)
@@ -124,30 +126,30 @@ class Chosen extends AbstractChosen
     if(@is_disabled)
       @container.addClass 'chzn-disabled'
       @search_field[0].disabled = true
-      @selected_item.unbind "focus", @activate_action if !@is_multiple
+      @selected_item.unbind "focus", @activate_action if !@is_multiple and not @single_text_style
       this.close_field()
     else
       @container.removeClass 'chzn-disabled'
       @search_field[0].disabled = false
-      @selected_item.bind "focus", @activate_action if !@is_multiple
+      @selected_item.bind "focus", @activate_action if !@is_multiple and not @single_text_style
 
   container_mousedown: (evt) ->
     if !@is_disabled
       target_closelink =  if evt? then ($ evt.target).hasClass "search-choice-close" else false
-      if evt and evt.type is "mousedown" and not @results_showing
-        evt.stopPropagation()
+      if evt and evt.type is "mousedown"
+        @active_field_click = @active_field
+        if not @results_showing and (!@single_text_style || !@active_field)
+          evt.stopPropagation()
       if not @pending_destroy_click and not target_closelink
-
         if not @active_field
           @search_field.val "" if @is_multiple
           $(document).click @click_test_action
           this.results_show() if not @single_text_style && (evt && evt.type is "mousedown")
           @search_field.select() if @single_text_style
+          this.activate_field()
         else if not @is_multiple and evt and (($(evt.target)[0] == @selected_item[0]) || $(evt.target).parents("a.chzn-single").length)
           evt.preventDefault()
           this.results_toggle()
-
-        this.activate_field()
       else
         @pending_destroy_click = false
 
@@ -156,6 +158,12 @@ class Chosen extends AbstractChosen
 
   blur_test: (evt) ->
     this.close_field() if not @active_field and @container.hasClass "chzn-container-active"
+
+  search_field_mouseup: (evt) ->
+    if !@active_field_click
+      evt.preventDefault()
+    else
+      @search_field.val("") if @search_field.val() is @default_text
 
   close_field: ->
     $(document).unbind "click", @click_test_action
@@ -182,8 +190,6 @@ class Chosen extends AbstractChosen
     @container.addClass "chzn-container-active"
     @active_field = true
 
-    @search_field.val(@search_field.val())
-    #@search_field.focus()
     @search_field.select()
 
   test_active_click: (evt) ->
